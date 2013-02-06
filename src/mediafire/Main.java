@@ -3,7 +3,7 @@ package mediafire;
 import java.io.FileInputStream;
 import java.security.MessageDigest;
 
-public class Main {
+public class Main { 
 	
     public static void main(String[] args)throws Exception
     {
