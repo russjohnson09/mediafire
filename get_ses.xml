@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<response>
+	<action>user/get_session_token</action>
+	<session_token>
+		123456789012345678901234567890123456789012345678901234567890
+	</session_token>
+	<result>Success</result>
+</response>
