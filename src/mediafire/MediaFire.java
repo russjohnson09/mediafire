@@ -21,9 +21,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-//http://www.mkyong.com/java/how-to-get-alexa-ranking-in-java/
 /**
- * ssha http://www.mkyong.com/java/java-sha-hashing-example/
+ * Simple console for mediafire.
  * 
  * @author russ
  * 
@@ -31,40 +30,97 @@ import org.xml.sax.SAXException;
 
 public class MediaFire {
 
-	private boolean json;
+	public final boolean JSON;
+	public final String SES;
+	public final String EMAIL = "russjohnson09@gmail.com";
+	public final String API = "https://www.mediafire.com/api/";
+	public final String RSES = "user/get_session_token.php?";
+	public final String APPID = "12472";
+	public final String APIKEY = "xiq460s1qhm74m56yzj3a53a53d4m870cmwsnnf5";
 
-	public MediaFire(boolean json) {
-		this.json = json;
+	public MediaFire(boolean JSON) {
+		this.JSON = JSON;
+		if (JSON) {
+			SES = null;
+		} else {
+			SES = getSessionToken();
+		}
 	}
 
-	public static void main(String[] args) throws Throwable {
+	private String getSessionToken() {
 
-		MediaFire m = new MediaFire(true);
+		Scanner scan = new Scanner(System.in);
+		String pass = scan.nextLine();
+		scan.close();
 
-		if (m.json) {
+		String sig = getSignature(EMAIL + pass + APPID + APIKEY);
 
-		} else {
-			m.getValidation();
+		URL request;
+		try {
+			request = new URL(API + "user/get_session_token.php?email=" + EMAIL
+					+ "&password=" + pass + "&application_id=" + APPID
+					+ "&signature=" + sig);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			return null;
+		}
+
+		InputStream is = processRequest(request);
+
+		return xmlProcess("session_token", is);
+
+	}
+
+	private String xmlProcess(String string, InputStream is) {
+		DocumentBuilder dBuilder;
+		try {
+			dBuilder = DocumentBuilderFactory.newInstance()
+					.newDocumentBuilder();
+			Document doc = dBuilder.parse(is);
+			Element e = doc.getDocumentElement();
+			NodeList nodeList = e.getElementsByTagName(string);
+			if (nodeList != null) {
+				return nodeList.item(0).getChildNodes().item(0)
+						.getTextContent();
+			} else {
+				return null;
+			}
+
+		} catch (ParserConfigurationException | SAXException | IOException e) {
+			e.printStackTrace();
+			return null;
 		}
 
 	}
 
-	private void getValidation() throws Throwable {
-		URL request;
+	private InputStream processRequest(URL request) {
+		URLConnection con;
+		try {
+			con = request.openConnection();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
 
-		String s1 = "https://www.mediafire.com/api/user/get_session_token.php?";
-		String email = "russjohnson09@gmail.com";
-		Scanner scan = new Scanner(System.in);
-		String password = scan.nextLine();
-		scan.close();
-		String appid = "12472";
+		InputStream is;
+		try {
+			is = con.getInputStream();
+			return is;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 
-		String apikey = "xiq460s1qhm74m56yzj3a53a53d4m870cmwsnnf5";
+	private String getSignature(String str) {
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("SHA-1");
+		} catch (NoSuchAlgorithmException e) {
+			return null;
+		}
 
-		String sig = email + password + appid + apikey;
-
-		MessageDigest md = MessageDigest.getInstance("SHA-1");
-		md.update(sig.getBytes());
+		md.update(str.getBytes());
 
 		byte byteData[] = md.digest();
 
@@ -76,36 +132,14 @@ public class MediaFire {
 			hexString.append(hex);
 		}
 
-		sig = hexString.toString();
+		return hexString.toString();
+	}
 
-		request = new URL(s1 + "email=" + email + "&password=" + password
-				+ "&application_id=" + appid + "&signature=" + sig);
+	public static void main(String[] args) throws Throwable {
 
-		URLConnection con = request.openConnection();
-
-		/*
-		 * BufferedReader in = new BufferedReader(new InputStreamReader(
-		 * con.getInputStream()));
-		 * 
-		 * String inputLine; while ((inputLine = in.readLine()) != null)
-		 * System.out.println(inputLine); in.close();
-		 */
-
-		InputStream is = con.getInputStream();
-
-		DocumentBuilder dBuilder = DocumentBuilderFactory.newInstance()
-				.newDocumentBuilder();
-		Document doc = dBuilder.parse(is);
-
-		Element element = doc.getDocumentElement();
-
-		NodeList nodeList = element.getElementsByTagName("response");
-
-		System.out.println(nodeList);
-
-		System.out.println(nodeList.item(0));
-		//
-		// System.out.println(nodeList.item(0));
+		MediaFire m = new MediaFire(false);
+		System.out.println(m.SES);
 
 	}
+
 }

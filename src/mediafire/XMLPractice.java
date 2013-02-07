@@ -25,7 +25,6 @@ public class XMLPractice {
 		Document doc = db.parse(xml);
 
 		doc.getDocumentElement().normalize();
-
 		Element e = doc.getDocumentElement();
 
 		NodeList nlist = e.getElementsByTagName("action");
